@@ -22,17 +22,19 @@ async function handleSubmit(event) {
     event.preventDefault();
     gallery.innerHTML = '';
     const searchValue = input.value;
-    if (searchValue === '') {
+    const trimmedValue = searchValue.trim();
+    page = 1;
+    if (trimmedValue === '') {
         Notiflix.Notify.warning('Field is empty');
         loadMoreBtn.style.display = 'none';
         return
     }
     
     try {
-        const data = await fetchPictures(searchValue, page)
+        loadMoreBtn.style.display = 'none';
+        const data = await fetchPictures(trimmedValue, page)
         if (data.totalHits === 0) {
             Notiflix.Notify.failure('Sorry, there are no images matching your search query. Please try again.');
-            loadMoreBtn.style.display = 'none';
         }
 
         else if (data.hits.length > 0) {
@@ -65,8 +67,9 @@ async function handleLoadMore() {
     page += 1;
     loadMoreBtn.style.display = 'none';
     const searchValue = input.value;
+    const trimmedValue = input.value.trim();
     try {
-        const data = await fetchPictures(searchValue, page);
+        const data = await fetchPictures(trimmedValue, page);
         const markup = data.hits.map(image => {
             return `<div class="photo-card">
                         <a href="${image.largeImageURL}"><img class="photo-image" src="${image.webformatURL}" alt="${image.tags}" title="${image.tags}" loading="lazy" /></a>
@@ -83,10 +86,11 @@ async function handleLoadMore() {
 
         const pagesNumber = data.totalHits / (40 * page);
         if (pagesNumber <= 1) {
-            return
+            Notiflix.Notify.info("We're sorry, but you've reached the end of search results.");
         }
-
-        loadMoreBtn.style.display = 'block';
+        else {
+            loadMoreBtn.style.display = 'block';
+        }
     }
     catch (error) {
         console.log(error);
